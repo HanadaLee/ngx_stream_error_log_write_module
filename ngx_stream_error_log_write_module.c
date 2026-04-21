@@ -123,11 +123,11 @@ ngx_stream_error_log_write_handler(ngx_stream_session_t *s)
 
         if (entries[i].level == NGX_LOG_DEBUG) {
             ngx_log_debug1(NGX_LOG_DEBUG_STREAM, s->connection->log, 0,
-                      "error_log_write: %V", &message);
+                      "%V", &message);
         }
 
         ngx_log_error(entries[i].level, s->connection->log, 0,
-                      "error_log_write: %V", &message);
+                      "%V", &message);
     }
 
     return NGX_DECLINED;
