@@ -22,11 +22,11 @@ This Nginx module is currently considered experimental. Issues and PRs are welco
 
 ```nginx
 stream {
-    error_log_write level=info message="main test log";
+    error_log_write level=info "message=main test log";
     server {
         listen 12345;
 
-        error_log_write  message="server test log";
+        error_log_write "message=server test log";
     }
 }
 ```
