@@ -121,11 +121,6 @@ ngx_stream_error_log_write_handler(ngx_stream_session_t *s)
             continue;
         }
 
-        if (entries[i].level == NGX_LOG_DEBUG) {
-            ngx_log_debug1(NGX_LOG_DEBUG_STREAM, s->connection->log, 0,
-                      "%V", &message);
-        }
-
         ngx_log_error(entries[i].level, s->connection->log, 0,
                       "%V", &message);
     }
@@ -212,14 +207,8 @@ ngx_stream_error_log_write(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
             }
 
             if (s.len == 5 && ngx_strncmp(s.data, "debug", 5) == 0) {
-#if (NGX_DEBUG)
                 entry->level = NGX_LOG_DEBUG;
                 continue;
-#else
-                ngx_conf_log_error(NGX_LOG_EMERG, cf, 0,
-                                   "nginx was built without debug support");
-                return NGX_CONF_ERROR;
-#endif
             }
 
             ngx_conf_log_error(NGX_LOG_EMERG, cf, 0,
