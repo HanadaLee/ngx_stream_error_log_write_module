@@ -9,6 +9,7 @@
 - [Status](#status)
 - [Synopsis](#synopsis)
 - [Installation](#installation)
+- [Conditional syntax](#conditional-syntax)
 - [Directives](#directives)
   - [error\_log\_write](#error_log_write)
 - [Author](#author)
@@ -26,7 +27,10 @@ stream {
     server {
         listen 12345;
 
-        error_log_write "message=server test log";
+        condition log_test is_not_empty $remote_addr;
+        when log_test {
+            error_log_write "message=server test log";
+        }
     }
 }
 ```
@@ -35,15 +39,21 @@ stream {
 
 To use theses modules, configure your nginx branch with `--add-module=/path/to/ngx_stream_error_log_write_module`.
 
+To enable named conditions, build `ngx_condition_module` and this module statically in the same nginx configuration.
+
+# Conditional syntax
+
+Conditional syntax is selected at compile time. With `ngx_condition_module`, place `error_log_write` inside a `stream` or `server` `when` block; `if=` and `if!=` are rejected. Without it, `when` is unavailable and legacy `if=`/`if!=` remain supported. `if=` matches a non-empty value other than `"0"`; `if!=` matches an empty value or `"0"`.
+
 # Directives
 
 ## error_log_write
 
-**Syntax:** *error_log_write [level=log_level] message=text [if=condition];*
+**Syntax:** *error_log_write [level=log_level] message=text;*
 
 **Default:** *-*
 
-**Context:** *stream, server*
+**Context:** *stream, server, stream when, server when*
 
 Writing a new error log. All error log entries are inherited unconditionally from the previous configuration level.
 

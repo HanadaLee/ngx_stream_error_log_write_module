@@ -8,12 +8,20 @@
 #include <ngx_core.h>
 #include <ngx_stream.h>
 
+#if (NGX_CONDITION)
+#include <ngx_stream_condition_module.h>
+#endif
+
 
 typedef struct {
     ngx_uint_t                    level;
     ngx_stream_complex_value_t   *message;
+#if (NGX_CONDITION)
+    ngx_condition_expr_id_t       expr_id;
+#else
     ngx_stream_complex_value_t   *filter;
     ngx_int_t                     negative;
+#endif
 } ngx_stream_error_log_write_entry_t;
 
 
@@ -34,7 +42,13 @@ static ngx_int_t ngx_stream_error_log_write_handler(ngx_stream_session_t *s);
 static ngx_command_t ngx_stream_error_log_write_commands[] = {
 
     { ngx_string("error_log_write"),
-      NGX_STREAM_MAIN_CONF|NGX_STREAM_SRV_CONF|NGX_CONF_TAKE123,
+      NGX_STREAM_MAIN_CONF|NGX_STREAM_SRV_CONF
+#if (NGX_CONDITION)
+                           |NGX_STREAM_MAIN_WHEN_CONF
+                           |NGX_STREAM_SRV_WHEN_CONF|NGX_CONF_TAKE12,
+#else
+                           |NGX_CONF_TAKE123,
+#endif
       ngx_stream_error_log_write,
       NGX_STREAM_SRV_CONF_OFFSET,
       0,
@@ -79,7 +93,9 @@ ngx_stream_error_log_write_handler(ngx_stream_session_t *s)
     ngx_stream_error_log_write_entry_t     *entries;
     ngx_str_t                               message;
     ngx_uint_t                              i;
+#if !(NGX_CONDITION)
     ngx_str_t                               val;
+#endif
 
     ngx_log_debug0(NGX_LOG_DEBUG_STREAM, s->connection->log, 0,
                    "error_log_write handler");
@@ -95,6 +111,13 @@ ngx_stream_error_log_write_handler(ngx_stream_session_t *s)
 
     for (i = 0; i < escf->log_entries->nelts; i++) {
 
+#if (NGX_CONDITION)
+        if (ngx_stream_condition_get_expr_result(s, entries[i].expr_id)
+            != NGX_CONDITION_EXPR_HIT)
+        {
+            continue;
+        }
+#else
         if (entries[i].filter) {
             if (ngx_stream_complex_value(s, entries[i].filter, &val)
                     != NGX_OK)
@@ -112,6 +135,7 @@ ngx_stream_error_log_write_handler(ngx_stream_session_t *s)
                 }
             }
         }
+#endif
 
         if (ngx_stream_complex_value(s, entries[i].message, &message)
                 != NGX_OK)
@@ -154,8 +178,12 @@ ngx_stream_error_log_write(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
     }
 
     entry->level = NGX_LOG_ERR;
+#if (NGX_CONDITION)
+    entry->expr_id = ngx_condition_get_associated_expr_id(cf);
+#else
     entry->filter = NULL;
     entry->negative = 0;
+#endif
 
     value = cf->args->elts;
 
@@ -239,6 +267,7 @@ ngx_stream_error_log_write(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
             continue;
         }
 
+#if !(NGX_CONDITION)
         if (ngx_strncmp(value[n].data, "if=", 3) == 0) {
             s.len = value[n].len - 3;
             s.data = value[n].data + 3;
@@ -286,6 +315,7 @@ ngx_stream_error_log_write(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
 
             continue;
         }
+#endif
 
         ngx_conf_log_error(NGX_LOG_EMERG, cf, 0,
                            "invalid parameter \"%V\"", &value[n]);
