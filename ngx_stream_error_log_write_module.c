@@ -62,11 +62,11 @@ static ngx_stream_module_t ngx_stream_error_log_write_module_ctx = {
     NULL,                                           /* preconfiguration */
     ngx_stream_error_log_write_init,                /* postconfiguration */
 
-    NULL,                                           /* create main configuration */
-    NULL,                                           /* init main configuration */
+    NULL,                                           /* create main conf */
+    NULL,                                           /* init main conf */
 
-    ngx_stream_error_log_write_create_srv_conf,     /* create server configuration */
-    ngx_stream_error_log_write_merge_srv_conf       /* merge server configuration */
+    ngx_stream_error_log_write_create_srv_conf,     /* create server conf */
+    ngx_stream_error_log_write_merge_srv_conf       /* merge server conf */
 };
 
 
@@ -119,8 +119,7 @@ ngx_stream_error_log_write_handler(ngx_stream_session_t *s)
         }
 #else
         if (entries[i].filter) {
-            if (ngx_stream_complex_value(s, entries[i].filter, &val)
-                    != NGX_OK)
+            if (ngx_stream_complex_value(s, entries[i].filter, &val) != NGX_OK)
             {
                 return NGX_ERROR;
             }
@@ -129,6 +128,7 @@ ngx_stream_error_log_write_handler(ngx_stream_session_t *s)
                 if (!entries[i].negative) {
                     continue;
                 }
+
             } else {
                 if (entries[i].negative) {
                     continue;
@@ -137,8 +137,7 @@ ngx_stream_error_log_write_handler(ngx_stream_session_t *s)
         }
 #endif
 
-        if (ngx_stream_complex_value(s, entries[i].message, &message)
-                != NGX_OK)
+        if (ngx_stream_complex_value(s, entries[i].message, &message) != NGX_OK)
         {
             ngx_log_error(NGX_LOG_ERR, s->connection->log, 0,
                           "error_log_write: failed to evaluate message");
@@ -214,7 +213,8 @@ ngx_stream_error_log_write(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
             }
 
             if ((s.len == 3 && ngx_strncmp(s.data, "err", 3) == 0)
-                || (s.len == 5 && ngx_strncmp(s.data, "error", 5) == 0)) {
+                || (s.len == 5 && ngx_strncmp(s.data, "error", 5) == 0))
+            {
                 entry->level = NGX_LOG_ERR;
                 continue;
             }
@@ -252,7 +252,7 @@ ngx_stream_error_log_write(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
             ccv.cf = cf;
             ccv.value = &s;
             ccv.complex_value = ngx_palloc(cf->pool,
-                                        sizeof(ngx_stream_complex_value_t));
+                                           sizeof(ngx_stream_complex_value_t));
 
             if (ccv.complex_value == NULL) {
                 return NGX_CONF_ERROR;
@@ -276,7 +276,7 @@ ngx_stream_error_log_write(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
             ccv.cf = cf;
             ccv.value = &s;
             ccv.complex_value = ngx_palloc(cf->pool,
-                                        sizeof(ngx_stream_complex_value_t));
+                                           sizeof(ngx_stream_complex_value_t));
 
             if (ccv.complex_value == NULL) {
                 return NGX_CONF_ERROR;
@@ -285,7 +285,7 @@ ngx_stream_error_log_write(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
             if (ngx_stream_compile_complex_value(&ccv) != NGX_OK) {
                 return NGX_CONF_ERROR;
             }
-            
+
             entry->filter = ccv.complex_value;
             entry->negative = 0;
 
@@ -324,7 +324,8 @@ ngx_stream_error_log_write(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
 
     if (entry->message == NULL) {
         ngx_conf_log_error(NGX_LOG_EMERG, cf, 0,
-                           "\"error_log_write\" requires \"message\" parameter");
+                           "\"error_log_write\" requires \"message\" "
+                           "parameter");
         return NGX_CONF_ERROR;
     }
 
