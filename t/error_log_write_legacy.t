@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# Tests for legacy error_log_write filters without ngx_condition_module.
+# Tests for legacy error_log_write filters without ngx_expr_module.
 
 ###############################################################################
 

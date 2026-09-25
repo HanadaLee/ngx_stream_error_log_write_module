@@ -27,7 +27,7 @@ stream {
     server {
         listen 12345;
 
-        condition log_test is_not_empty $remote_addr;
+        expr log_test !is_empty $remote_addr;
         when log_test {
             error_log_write "message=server test log";
         }
@@ -39,11 +39,11 @@ stream {
 
 To use theses modules, configure your nginx branch with `--add-module=/path/to/ngx_stream_error_log_write_module`.
 
-To enable named conditions, build `ngx_condition_module` and this module statically in the same nginx configuration.
+To enable named conditions, build `ngx_expr_module` and this module statically in the same nginx configuration.
 
 # Conditional syntax
 
-Conditional syntax is selected at compile time. With `ngx_condition_module`, place `error_log_write` inside a `stream` or `server` `when` block; `if=` and `if!=` are rejected. Without it, `when` is unavailable and legacy `if=`/`if!=` remain supported. `if=` matches a non-empty value other than `"0"`; `if!=` matches an empty value or `"0"`.
+Conditional syntax is selected at compile time. With `ngx_expr_module`, place `error_log_write` inside a `stream` or `server` `when` block; `if=` and `if!=` are rejected. Without it, `when` is unavailable and legacy `if=`/`if!=` remain supported. `if=` matches a non-empty value other than `"0"`; `if!=` matches an empty value or `"0"`.
 
 # Directives
 

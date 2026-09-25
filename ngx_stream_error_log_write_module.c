@@ -8,16 +8,16 @@
 #include <ngx_core.h>
 #include <ngx_stream.h>
 
-#if (NGX_CONDITION)
-#include <ngx_stream_condition_module.h>
+#if (NGX_EXPR)
+#include <ngx_stream_expr_module.h>
 #endif
 
 
 typedef struct {
     ngx_uint_t                    level;
     ngx_stream_complex_value_t   *message;
-#if (NGX_CONDITION)
-    ngx_condition_expr_id_t       expr_id;
+#if (NGX_EXPR)
+    ngx_expr_when_id_t            expr_id;
 #else
     ngx_stream_complex_value_t   *filter;
     ngx_int_t                     negative;
@@ -43,7 +43,7 @@ static ngx_command_t ngx_stream_error_log_write_commands[] = {
 
     { ngx_string("error_log_write"),
       NGX_STREAM_MAIN_CONF|NGX_STREAM_SRV_CONF
-#if (NGX_CONDITION)
+#if (NGX_EXPR)
                            |NGX_STREAM_MAIN_WHEN_CONF
                            |NGX_STREAM_SRV_WHEN_CONF|NGX_CONF_TAKE12,
 #else
@@ -93,7 +93,7 @@ ngx_stream_error_log_write_handler(ngx_stream_session_t *s)
     ngx_stream_error_log_write_entry_t     *entries;
     ngx_str_t                               message;
     ngx_uint_t                              i;
-#if !(NGX_CONDITION)
+#if !(NGX_EXPR)
     ngx_str_t                               val;
 #endif
 
@@ -111,9 +111,9 @@ ngx_stream_error_log_write_handler(ngx_stream_session_t *s)
 
     for (i = 0; i < escf->log_entries->nelts; i++) {
 
-#if (NGX_CONDITION)
-        if (ngx_stream_condition_get_expr_result(s, entries[i].expr_id)
-            != NGX_CONDITION_EXPR_HIT)
+#if (NGX_EXPR)
+        if (ngx_stream_expr_get_result(s, entries[i].expr_id)
+            != NGX_EXPR_WHEN_HIT)
         {
             continue;
         }
@@ -177,8 +177,8 @@ ngx_stream_error_log_write(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
     }
 
     entry->level = NGX_LOG_ERR;
-#if (NGX_CONDITION)
-    entry->expr_id = ngx_condition_get_associated_expr_id(cf);
+#if (NGX_EXPR)
+    entry->expr_id = ngx_expr_get_associated_when_id(cf);
 #else
     entry->filter = NULL;
     entry->negative = 0;
@@ -267,7 +267,7 @@ ngx_stream_error_log_write(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
             continue;
         }
 
-#if !(NGX_CONDITION)
+#if !(NGX_EXPR)
         if (ngx_strncmp(value[n].data, "if=", 3) == 0) {
             s.len = value[n].len - 3;
             s.data = value[n].data + 3;

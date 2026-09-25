@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# Tests for ngx_stream_error_log_write_module with ngx_condition_module.
+# Tests for ngx_stream_error_log_write_module with ngx_expr_module.
 
 ###############################################################################
 
@@ -20,7 +20,7 @@ use Test::Nginx::Stream qw/ stream /;
 select STDERR; $| = 1;
 select STDOUT; $| = 1;
 
-my $t = Test::Nginx->new()->has(qw/stream stream_return ngx_condition_module
+my $t = Test::Nginx->new()->has(qw/stream stream_return ngx_expr_module
 	ngx_stream_error_log_write_module/)->plan(10);
 
 $t->write_file_expand('nginx.conf', <<'EOF');
@@ -41,7 +41,7 @@ stream {
         listen     127.0.0.1:8080;
         error_log  %%TESTDIR%%/module.log info;
 
-        condition selected bool true;
+        expr selected bool true;
 
         when selected {
             error_log_write level=warn message=conditional:$server_port;
@@ -57,7 +57,7 @@ stream {
         listen     127.0.0.1:8081;
         error_log  %%TESTDIR%%/module.log info;
 
-        condition selected bool false;
+        expr selected bool false;
 
         when selected {
             error_log_write level=warn message=conditional:$server_port;
